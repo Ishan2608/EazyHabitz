@@ -1,6 +1,6 @@
+import { Tabs } from "expo-router";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
-import { Tabs } from "expo-router";
 
 export default function TabLayout() {
     return (
