@@ -18,8 +18,8 @@ export default function TabLayout() {
 
                 }
             } />
-            <Tabs.Screen name='login' options={{
-                title: "Login", tabBarIcon: ({ color, focused }) => {
+            <Tabs.Screen name='auth' options={{
+                title: "Auth", tabBarIcon: ({ color, focused }) => {
                     return focused ? (
                         <AntDesign name="login" size={24} color={color} />
                     ) : (
