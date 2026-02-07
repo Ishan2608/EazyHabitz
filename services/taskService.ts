@@ -1,18 +1,18 @@
 // src/services/taskService.ts
-import { db } from "../firebaseConfig";
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  query, 
-  where, 
-  getDocs, 
-  serverTimestamp, 
-  orderBy,
-  Timestamp
+import {
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDocs,
+    orderBy,
+    query,
+    serverTimestamp,
+    Timestamp,
+    updateDoc,
+    where
 } from "firebase/firestore";
+import { db } from "../config/firebaseConfig";
 import { Task, TaskList } from "../types";
 
 /**

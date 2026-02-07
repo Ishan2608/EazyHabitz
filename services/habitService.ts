@@ -1,17 +1,17 @@
 // src/services/habitService.ts
-import { db } from "../firebaseConfig";
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  query, 
-  where, 
-  getDocs, 
-  orderBy,
-  serverTimestamp 
+import {
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDocs,
+    orderBy,
+    query,
+    serverTimestamp,
+    updateDoc,
+    where
 } from "firebase/firestore";
+import { db } from "../config/firebaseConfig";
 import { Habit } from "../types";
 
 /**

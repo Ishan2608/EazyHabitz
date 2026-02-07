@@ -1,20 +1,19 @@
 // src/services/goalService.ts
-import { Goal } from "../types";
-import { SWOTAnalysis } from "../types";
-import { db } from "../firebaseConfig";
-import { 
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  where,
-  getDocs,
-  orderBy,
-  serverTimestamp,
-  writeBatch
+import {
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDocs,
+    orderBy,
+    query,
+    serverTimestamp,
+    updateDoc,
+    where,
+    writeBatch
 } from "firebase/firestore";
+import { db } from "../config/firebaseConfig";
+import { Goal, SWOTAnalysis } from "../types";
 
 /**
  * Creates a new goal for a user

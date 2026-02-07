@@ -1,15 +1,15 @@
 // src/services/habitLogService.ts
-import { db } from "../firebaseConfig";
-import { 
-  doc, 
-  setDoc, 
-  deleteDoc,
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  serverTimestamp 
+import {
+    collection,
+    deleteDoc,
+    doc,
+    getDocs,
+    query,
+    serverTimestamp,
+    setDoc,
+    where
 } from "firebase/firestore";
+import { db } from "../config/firebaseConfig";
 import { HabitLog } from "../types";
 
 /**
