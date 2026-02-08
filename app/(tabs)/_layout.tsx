@@ -4,7 +4,11 @@ import Entypo from '@expo/vector-icons/Entypo';
 
 export default function TabLayout() {
     return (
-        <Tabs screenOptions={{ tabBarActiveTintColor: 'coral' }}>
+        <Tabs screenOptions={{ 
+                tabBarActiveTintColor: 'coral',
+                headerShadowVisible: false,
+                
+            }}>
             <Tabs.Screen name='index' options={
                 {
                     title: "Home",

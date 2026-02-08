@@ -1,6 +1,4 @@
 // services/authService.ts
-import { auth, db } from "@/config/firebaseConfig";
-import { User } from "@/types/index";
 import {
   createUserWithEmailAndPassword,
   User as FirebaseUser,
@@ -10,10 +8,41 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { auth, db } from "@config/firebaseConfig";
+import { User } from "@/types/index";
+
+/**
+ * Maps Firebase error codes to user-friendly messages
+ */
+const getSignInErrorMessage = (errorCode: string): string => {
+  const errorMessages: { [key: string]: string } = {
+    "auth/user-not-found": "You are not registered. Please sign up first.",
+    "auth/invalid-credential": "You are not registered. Please sign up first.",
+    "auth/configuration-not-found": "You are not registered. Please sign up first.",
+    "auth/wrong-password": "Incorrect password. Please try again.",
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/user-disabled": "This account has been disabled.",
+    "auth/too-many-requests": "Too many failed attempts. Please try again later.",
+    "auth/network-request-failed": "Network error. Please check your internet connection.",
+  };
+
+  return errorMessages[errorCode] || "Unable to sign in. Please try again.";
+};
+
+const getSignUpErrorMessage = (errorCode: string): string => {
+  const errorMessages: { [key: string]: string } = {
+    "auth/email-already-in-use": "This email is already registered. Please sign in instead.",
+    "auth/weak-password": "Password must be at least 6 characters.",
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/operation-not-allowed": "Sign up is currently disabled. Please contact support.",
+    "auth/network-request-failed": "Network error. Please check your internet connection.",
+  };
+
+  return errorMessages[errorCode] || "Unable to create account. Please try again.";
+};
 
 /**
  * Creates a User Profile in Firestore
- * Maps to: type User @table
  */
 export const createUserProfile = async (
   firebaseUser: FirebaseUser,
@@ -23,7 +52,6 @@ export const createUserProfile = async (
   const userRef = doc(db, "users", firebaseUser.uid);
 
   try {
-    // Check if profile already exists
     const userDoc = await getDoc(userRef);
 
     if (!userDoc.exists()) {
@@ -38,7 +66,6 @@ export const createUserProfile = async (
       await setDoc(userRef, userData);
     }
 
-    // Fetch and return the complete profile
     const newUserDoc = await getDoc(userRef);
     if (!newUserDoc.exists()) {
       throw new Error("Failed to create user profile");
@@ -52,9 +79,9 @@ export const createUserProfile = async (
       displayName: data.displayName,
       photoUrl: data.photoUrl,
     } as User;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating user profile:", error);
-    throw error;
+    throw new Error("Failed to create user profile. Please try again.");
   }
 };
 
@@ -77,9 +104,9 @@ export const getUserProfile = async (uid: string): Promise<User | null> => {
       } as User;
     }
     return null;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching user profile:", error);
-    throw error;
+    throw new Error("Failed to fetch user profile");
   }
 };
 
@@ -91,18 +118,15 @@ const validateSignupInput = (
   password: string,
   displayName: string
 ): { valid: boolean; error?: string } => {
-  // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     return { valid: false, error: "Please enter a valid email address" };
   }
 
-  // Password validation (min 6 chars - Firebase requirement)
   if (!password || password.length < 6) {
     return { valid: false, error: "Password must be at least 6 characters" };
   }
 
-  // Display name validation
   if (!displayName || displayName.trim().length < 2) {
     return { valid: false, error: "Username must be at least 2 characters" };
   }
@@ -120,13 +144,13 @@ export const signUpUser = async (
   photoUrl?: string
 ) => {
   try {
-    // Validate input
+    // Validate input first
     const validation = validateSignupInput(email, password, displayName);
     if (!validation.valid) {
       return { user: null, error: validation.error };
     }
 
-    // Create Firebase Auth user
+    // Create Firebase Auth account
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email.trim(),
@@ -134,7 +158,7 @@ export const signUpUser = async (
     );
     const firebaseUser = userCredential.user;
 
-    // Update Firebase Auth profile with display name
+    // Update Firebase Auth profile
     await updateProfile(firebaseUser, {
       displayName: displayName.trim(),
       photoURL: photoUrl || null,
@@ -150,19 +174,12 @@ export const signUpUser = async (
     return { user: userProfile, error: null };
   } catch (error: any) {
     console.error("Signup error:", error);
-
-    // Map Firebase errors to user-friendly messages
-    let errorMessage = "Failed to create account";
-    if (error.code === "auth/email-already-in-use") {
-      errorMessage = "This email is already registered";
-    } else if (error.code === "auth/invalid-email") {
-      errorMessage = "Invalid email address";
-    } else if (error.code === "auth/weak-password") {
-      errorMessage = "Password is too weak";
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-
+    
+    // Use signup-specific error messages
+    const errorMessage = error.code 
+      ? getSignUpErrorMessage(error.code)
+      : error.message || "Failed to create account";
+    
     return { user: null, error: errorMessage };
   }
 };
@@ -172,7 +189,6 @@ export const signUpUser = async (
  */
 export const loginUser = async (email: string, password: string) => {
   try {
-    // Basic validation
     if (!email || !password) {
       return { user: null, error: "Email and password are required" };
     }
@@ -185,21 +201,12 @@ export const loginUser = async (email: string, password: string) => {
     return { user: userCredential.user, error: null };
   } catch (error: any) {
     console.error("Login error:", error);
-
-    // Map Firebase errors to user-friendly messages
-    let errorMessage = "Failed to sign in";
-    if (
-      error.code === "auth/invalid-credential" ||
-      error.code === "auth/user-not-found" ||
-      error.code === "auth/wrong-password"
-    ) {
-      errorMessage = "Invalid email or password";
-    } else if (error.code === "auth/too-many-requests") {
-      errorMessage = "Too many failed attempts. Please try again later";
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-
+    
+    // Use signin-specific error messages
+    const errorMessage = error.code 
+      ? getSignInErrorMessage(error.code)
+      : "Unable to sign in. Please try again.";
+    
     return { user: null, error: errorMessage };
   }
 };
@@ -212,13 +219,12 @@ export const logoutUser = async (): Promise<void> => {
     await signOut(auth);
   } catch (error: any) {
     console.error("Logout error:", error.message);
-    throw error;
+    throw new Error("Failed to log out. Please try again");
   }
 };
 
 /**
  * Observer for session persistence
- * Returns unsubscribe function
  */
 export const subscribeToAuthChanges = (
   callback: (user: FirebaseUser | null) => void

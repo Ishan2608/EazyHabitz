@@ -1,21 +1,21 @@
 // app/(tabs)/auth.tsx
 import { useAuth } from "@/context/authContext";
-import * as ImagePicker from "expo-image-picker";
-import { Redirect } from "expo-router";
-import { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Image,
+  Alert,
 } from "react-native";
+import { useState } from "react";
+import { Redirect } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 
 export default function AuthScreen() {
   const { user, signin, signup, loading: authLoading } = useAuth();
@@ -38,15 +38,12 @@ export default function AuthScreen() {
     general: "",
   });
 
-  // Redirect if already logged in
   if (user) {
     return <Redirect href="/" />;
   }
 
-  // Request permissions and pick image
   const pickImage = async () => {
     try {
-      // Request permission
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (status !== "granted") {
@@ -57,12 +54,11 @@ export default function AuthScreen() {
         return;
       }
 
-      // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1], // Square crop
-        quality: 0.5, // Compress to reduce file size
+        aspect: [1, 1],
+        quality: 0.5,
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -74,10 +70,8 @@ export default function AuthScreen() {
     }
   };
 
-  // Take photo with camera
   const takePhoto = async () => {
     try {
-      // Request permission
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       
       if (status !== "granted") {
@@ -88,11 +82,10 @@ export default function AuthScreen() {
         return;
       }
 
-      // Launch camera
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
-        aspect: [1, 1], // Square crop
-        quality: 0.5, // Compress to reduce file size
+        aspect: [1, 1],
+        quality: 0.5,
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -104,7 +97,6 @@ export default function AuthScreen() {
     }
   };
 
-  // Show image picker options
   const showImageOptions = () => {
     Alert.alert(
       "Profile Photo",
@@ -127,10 +119,9 @@ export default function AuthScreen() {
     );
   };
 
-  // Clear errors when switching modes
   const toggleMode = () => {
     setIsLogin(!isLogin);
-    setProfileImage(null); // Clear profile image when switching
+    setProfileImage(null);
     setErrors({
       email: "",
       password: "",
@@ -140,7 +131,6 @@ export default function AuthScreen() {
     });
   };
 
-  // Validate form inputs
   const validateForm = (): boolean => {
     const newErrors = {
       email: "",
@@ -150,7 +140,6 @@ export default function AuthScreen() {
       general: "",
     };
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim()) {
       newErrors.email = "Email is required";
@@ -158,14 +147,12 @@ export default function AuthScreen() {
       newErrors.email = "Please enter a valid email";
     }
 
-    // Password validation
     if (!password) {
       newErrors.password = "Password is required";
     } else if (password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
 
-    // Sign up specific validations
     if (!isLogin) {
       if (!username.trim()) {
         newErrors.username = "Username is required";
@@ -181,13 +168,10 @@ export default function AuthScreen() {
     }
 
     setErrors(newErrors);
-
-    // Return true if no errors
     return !Object.values(newErrors).some((error) => error !== "");
   };
 
   const handleAuthAction = async () => {
-    // Clear previous errors
     setErrors({
       email: "",
       password: "",
@@ -196,7 +180,6 @@ export default function AuthScreen() {
       general: "",
     });
 
-    // Validate form
     if (!validateForm()) {
       return;
     }
@@ -205,14 +188,34 @@ export default function AuthScreen() {
 
     try {
       if (isLogin) {
-        // Sign In
         const result = await signin(email.trim(), password);
 
         if (!result.success) {
-          setErrors((prev) => ({ ...prev, general: result.error || "Sign in failed" }));
+          // Show error in a more prominent way
+          setErrors((prev) => ({ 
+            ...prev, 
+            general: result.error || "Sign in failed" 
+          }));
+          
+          // Also show an alert for critical errors
+          if (result.error?.includes("No account found")) {
+            Alert.alert(
+              "Account Not Found",
+              "No account exists with this email. Would you like to sign up?",
+              [
+                {
+                  text: "Sign Up",
+                  onPress: () => setIsLogin(false),
+                },
+                {
+                  text: "Try Again",
+                  style: "cancel",
+                },
+              ]
+            );
+          }
         }
       } else {
-        // Sign Up (with optional profile photo)
         const result = await signup(
           email.trim(),
           password,
@@ -225,13 +228,46 @@ export default function AuthScreen() {
             ...prev,
             general: result.error || "Sign up failed",
           }));
+          
+          // Show alert for email already in use
+          if (result.error?.includes("already registered")) {
+            Alert.alert(
+              "Email Already Registered",
+              "An account with this email already exists. Would you like to sign in?",
+              [
+                {
+                  text: "Sign In",
+                  onPress: () => setIsLogin(true),
+                },
+                {
+                  text: "Try Again",
+                  style: "cancel",
+                },
+              ]
+            );
+          }
+        } else {
+          // Success message for signup
+          Alert.alert(
+            "Welcome! 🎉",
+            "Your account has been created successfully!",
+            [{ text: "OK" }]
+          );
         }
       }
     } catch (error: any) {
+      const errorMessage = error.message || "An unexpected error occurred";
       setErrors((prev) => ({
         ...prev,
-        general: error.message || "An unexpected error occurred",
+        general: errorMessage,
       }));
+      
+      // Show alert for unexpected errors
+      Alert.alert(
+        "Error",
+        errorMessage,
+        [{ text: "OK" }]
+      );
     } finally {
       setLoading(false);
     }
@@ -241,6 +277,7 @@ export default function AuthScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -255,7 +292,6 @@ export default function AuthScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.formContainer}>
-          {/* Title */}
           <Text style={styles.title}>
             {isLogin ? "Welcome Back" : "Create Account"}
           </Text>
@@ -263,7 +299,6 @@ export default function AuthScreen() {
             {isLogin ? "Sign in to continue" : "Sign up to get started"}
           </Text>
 
-          {/* Profile Photo (Sign Up only) */}
           {!isLogin && (
             <View style={styles.photoContainer}>
               <TouchableOpacity
@@ -282,10 +317,10 @@ export default function AuthScreen() {
                   </View>
                 )}
               </TouchableOpacity>
+              <Text style={styles.photoHint}>Optional</Text>
             </View>
           )}
 
-          {/* Username (Sign Up only) */}
           {!isLogin && (
             <View style={styles.inputContainer}>
               <TextInput
@@ -305,7 +340,6 @@ export default function AuthScreen() {
             </View>
           )}
 
-          {/* Email */}
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, errors.email && styles.inputError]}
@@ -324,7 +358,6 @@ export default function AuthScreen() {
             ) : null}
           </View>
 
-          {/* Password */}
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, errors.password && styles.inputError]}
@@ -342,7 +375,6 @@ export default function AuthScreen() {
             ) : null}
           </View>
 
-          {/* Confirm Password (Sign Up only) */}
           {!isLogin && (
             <View style={styles.inputContainer}>
               <TextInput
@@ -365,12 +397,13 @@ export default function AuthScreen() {
             </View>
           )}
 
-          {/* General Error */}
           {errors.general ? (
-            <Text style={styles.generalError}>{errors.general}</Text>
+            <View style={styles.generalErrorContainer}>
+              <Text style={styles.generalErrorIcon}>⚠️</Text>
+              <Text style={styles.generalError}>{errors.general}</Text>
+            </View>
           ) : null}
 
-          {/* Submit Button */}
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleAuthAction}
@@ -385,7 +418,6 @@ export default function AuthScreen() {
             )}
           </TouchableOpacity>
 
-          {/* Toggle Mode */}
           <TouchableOpacity onPress={toggleMode} style={styles.toggleButton}>
             <Text style={styles.toggleText}>
               {isLogin
@@ -412,6 +444,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F5F5F5",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#666",
   },
   scrollContent: {
     flexGrow: 1,
@@ -500,14 +537,25 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 4,
   },
+  generalErrorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFE5E5",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "#FF3B30",
+  },
+  generalErrorIcon: {
+    fontSize: 20,
+    marginRight: 8,
+  },
   generalError: {
     color: "#FF3B30",
     fontSize: 14,
-    marginBottom: 16,
-    textAlign: "center",
-    padding: 12,
-    backgroundColor: "#FFE5E5",
-    borderRadius: 8,
+    flex: 1,
+    fontWeight: "500",
   },
   button: {
     backgroundColor: "#007AFF",
