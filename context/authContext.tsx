@@ -8,7 +8,7 @@ import {
   logoutUser,
   signUpUser,
   subscribeToAuthChanges,
-} from "@services/authService";
+} from "@/services/authService";
 
 type AuthContextType = {
   user: User | null;
