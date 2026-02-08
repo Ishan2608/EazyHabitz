@@ -1,35 +1,57 @@
-// src/services/authService.ts
+// services/authService.ts
 import {
-    createUserWithEmailAndPassword,
-    User as FirebaseUser,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
-    signOut
+  createUserWithEmailAndPassword,
+  User as FirebaseUser,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db } from "../config/firebaseConfig";
-import { User } from "../types";
+import { auth, db } from "@config/firebaseConfig";
+import { User } from "../types/index";
 
 /**
  * Creates a User Profile in Firestore
  * Maps to: type User @table
  */
-export const createUserProfile = async (user: FirebaseUser): Promise<void> => {
-  const userRef = doc(db, "users", user.uid);
-  
+export const createUserProfile = async (
+  firebaseUser: FirebaseUser,
+  displayName: string,
+  photoUrl?: string
+): Promise<User> => {
+  const userRef = doc(db, "users", firebaseUser.uid);
+
   try {
-    // Check if user profile already exists
+    // Check if profile already exists
     const userDoc = await getDoc(userRef);
-    
+
     if (!userDoc.exists()) {
-      await setDoc(userRef, {
-        email: user.email || "",
-        uid: user.uid,
+      const userData = {
+        email: firebaseUser.email || "",
+        uid: firebaseUser.uid,
         createdAt: serverTimestamp(),
-        displayName: user.displayName || "New User",
-        photoUrl: user.photoURL || "",
-      });
+        displayName: displayName.trim(),
+        photoUrl: photoUrl || "",
+      };
+
+      await setDoc(userRef, userData);
     }
+
+    // Fetch and return the complete profile
+    const newUserDoc = await getDoc(userRef);
+    if (!newUserDoc.exists()) {
+      throw new Error("Failed to create user profile");
+    }
+
+    const data = newUserDoc.data();
+    return {
+      email: data.email,
+      uid: data.uid,
+      createdAt: data.createdAt,
+      displayName: data.displayName,
+      photoUrl: data.photoUrl,
+    } as User;
   } catch (error) {
     console.error("Error creating user profile:", error);
     throw error;
@@ -43,7 +65,7 @@ export const getUserProfile = async (uid: string): Promise<User | null> => {
   try {
     const userRef = doc(db, "users", uid);
     const userDoc = await getDoc(userRef);
-    
+
     if (userDoc.exists()) {
       const data = userDoc.data();
       return {
@@ -62,19 +84,86 @@ export const getUserProfile = async (uid: string): Promise<User | null> => {
 };
 
 /**
+ * Validates signup input
+ */
+const validateSignupInput = (
+  email: string,
+  password: string,
+  displayName: string
+): { valid: boolean; error?: string } => {
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return { valid: false, error: "Please enter a valid email address" };
+  }
+
+  // Password validation (min 6 chars - Firebase requirement)
+  if (!password || password.length < 6) {
+    return { valid: false, error: "Password must be at least 6 characters" };
+  }
+
+  // Display name validation
+  if (!displayName || displayName.trim().length < 2) {
+    return { valid: false, error: "Username must be at least 2 characters" };
+  }
+
+  return { valid: true };
+};
+
+/**
  * Registers a new user and initializes their profile
  */
-export const signUpUser = async (email: string, password: string) => {
+export const signUpUser = async (
+  email: string,
+  password: string,
+  displayName: string,
+  photoUrl?: string
+) => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    // Validate input
+    const validation = validateSignupInput(email, password, displayName);
+    if (!validation.valid) {
+      return { user: null, error: validation.error };
+    }
 
-    // Initialize the User profile in Firestore
-    await createUserProfile(user);
-    
-    return { user, error: null };
+    // Create Firebase Auth user
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email.trim(),
+      password
+    );
+    const firebaseUser = userCredential.user;
+
+    // Update Firebase Auth profile with display name
+    await updateProfile(firebaseUser, {
+      displayName: displayName.trim(),
+      photoURL: photoUrl || null,
+    });
+
+    // Create Firestore user profile
+    const userProfile = await createUserProfile(
+      firebaseUser,
+      displayName,
+      photoUrl
+    );
+
+    return { user: userProfile, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message };
+    console.error("Signup error:", error);
+
+    // Map Firebase errors to user-friendly messages
+    let errorMessage = "Failed to create account";
+    if (error.code === "auth/email-already-in-use") {
+      errorMessage = "This email is already registered";
+    } else if (error.code === "auth/invalid-email") {
+      errorMessage = "Invalid email address";
+    } else if (error.code === "auth/weak-password") {
+      errorMessage = "Password is too weak";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return { user: null, error: errorMessage };
   }
 };
 
@@ -83,10 +172,35 @@ export const signUpUser = async (email: string, password: string) => {
  */
 export const loginUser = async (email: string, password: string) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    // Basic validation
+    if (!email || !password) {
+      return { user: null, error: "Email and password are required" };
+    }
+
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email.trim(),
+      password
+    );
     return { user: userCredential.user, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message };
+    console.error("Login error:", error);
+
+    // Map Firebase errors to user-friendly messages
+    let errorMessage = "Failed to sign in";
+    if (
+      error.code === "auth/invalid-credential" ||
+      error.code === "auth/user-not-found" ||
+      error.code === "auth/wrong-password"
+    ) {
+      errorMessage = "Invalid email or password";
+    } else if (error.code === "auth/too-many-requests") {
+      errorMessage = "Too many failed attempts. Please try again later";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return { user: null, error: errorMessage };
   }
 };
 
