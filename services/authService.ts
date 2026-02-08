@@ -1,4 +1,6 @@
 // services/authService.ts
+import { auth, db } from "@/config/firebaseConfig";
+import { User } from "@/types/index";
 import {
   createUserWithEmailAndPassword,
   User as FirebaseUser,
@@ -8,8 +10,6 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db } from "@config/firebaseConfig";
-import { User } from "../types/index";
 
 /**
  * Creates a User Profile in Firestore

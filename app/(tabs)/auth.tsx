@@ -1,19 +1,21 @@
 // app/(tabs)/auth.tsx
 import { useAuth } from "@/context/authContext";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-} from "react-native";
-import { useState } from "react";
+import * as ImagePicker from "expo-image-picker";
 import { Redirect } from "expo-router";
+import { useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function AuthScreen() {
   const { user, signin, signup, loading: authLoading } = useAuth();
@@ -23,6 +25,7 @@ export default function AuthScreen() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isLogin, setIsLogin] = useState(true);
 
   // UI state
@@ -40,9 +43,94 @@ export default function AuthScreen() {
     return <Redirect href="/" />;
   }
 
+  // Request permissions and pick image
+  const pickImage = async () => {
+    try {
+      // Request permission
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Sorry, we need camera roll permissions to upload a profile photo."
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1], // Square crop
+        quality: 0.5, // Compress to reduce file size
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setProfileImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image. Please try again.");
+    }
+  };
+
+  // Take photo with camera
+  const takePhoto = async () => {
+    try {
+      // Request permission
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Sorry, we need camera permissions to take a photo."
+        );
+        return;
+      }
+
+      // Launch camera
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1], // Square crop
+        quality: 0.5, // Compress to reduce file size
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setProfileImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      Alert.alert("Error", "Failed to take photo. Please try again.");
+    }
+  };
+
+  // Show image picker options
+  const showImageOptions = () => {
+    Alert.alert(
+      "Profile Photo",
+      "Choose an option",
+      [
+        {
+          text: "Take Photo",
+          onPress: takePhoto,
+        },
+        {
+          text: "Choose from Library",
+          onPress: pickImage,
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   // Clear errors when switching modes
   const toggleMode = () => {
     setIsLogin(!isLogin);
+    setProfileImage(null); // Clear profile image when switching
     setErrors({
       email: "",
       password: "",
@@ -124,8 +212,13 @@ export default function AuthScreen() {
           setErrors((prev) => ({ ...prev, general: result.error || "Sign in failed" }));
         }
       } else {
-        // Sign Up
-        const result = await signup(email.trim(), password, username.trim());
+        // Sign Up (with optional profile photo)
+        const result = await signup(
+          email.trim(),
+          password,
+          username.trim(),
+          profileImage || undefined
+        );
 
         if (!result.success) {
           setErrors((prev) => ({
@@ -167,10 +260,30 @@ export default function AuthScreen() {
             {isLogin ? "Welcome Back" : "Create Account"}
           </Text>
           <Text style={styles.subtitle}>
-            {isLogin
-              ? "Sign in to continue"
-              : "Sign up to get started"}
+            {isLogin ? "Sign in to continue" : "Sign up to get started"}
           </Text>
+
+          {/* Profile Photo (Sign Up only) */}
+          {!isLogin && (
+            <View style={styles.photoContainer}>
+              <TouchableOpacity
+                style={styles.photoButton}
+                onPress={showImageOptions}
+              >
+                {profileImage ? (
+                  <Image
+                    source={{ uri: profileImage }}
+                    style={styles.profileImage}
+                  />
+                ) : (
+                  <View style={styles.placeholderPhoto}>
+                    <Text style={styles.photoIcon}>📷</Text>
+                    <Text style={styles.photoText}>Add Photo</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Username (Sign Up only) */}
           {!isLogin && (
@@ -325,8 +438,46 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: "#666",
-    marginBottom: 32,
+    marginBottom: 24,
     textAlign: "center",
+  },
+  photoContainer: {
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  photoButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: "hidden",
+    marginBottom: 8,
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+  },
+  placeholderPhoto: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#F0F0F0",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#DDD",
+    borderStyle: "dashed",
+  },
+  photoIcon: {
+    fontSize: 40,
+    marginBottom: 8,
+  },
+  photoText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  photoHint: {
+    fontSize: 12,
+    color: "#999",
+    fontStyle: "italic",
   },
   inputContainer: {
     marginBottom: 16,

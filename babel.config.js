@@ -20,6 +20,7 @@ module.exports = function (api) {
               '@assets': './assets',
               '@config': './config',
               '@constants': './constants',
+              '@context': './context',
             },
           },
         ],
