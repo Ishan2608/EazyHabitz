@@ -1,17 +1,10 @@
 // app/(tabs)/auth.tsx
 import { useAuth } from "@/context/authContext";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Image,
-  Alert,
+  View, Text, TextInput, TouchableOpacity, 
+  StyleSheet, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ScrollView,
+  Image, Alert,
 } from "react-native";
 import { useState } from "react";
 import { Redirect } from "expo-router";

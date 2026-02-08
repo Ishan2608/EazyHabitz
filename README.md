@@ -1,6 +1,11 @@
 # EazyHabitz
 
-This is a simple habit tracking mobile application built while followig allowing the React Native Crash Course YouTube video by PedroTech.
+A simple yet powerful habit tracking mobile application which provides a suit of productive features -> habits, tasks, goals, and mapping habits and tasks to goals, SWOT Analyses.
+
+Future Optimization Features:
+- Focus Mode (Pomodora Timers)
+- Customize Theme
+- Log Keeping
 
 > The primary purpose of this repo is for me to learn to develop React Native applications
 
