@@ -1,9 +1,11 @@
-import { View, Text } from "react-native";
+import HabitList from '@/components/HabitList';
+import globalStyles from '@/styles/globals';
+import { ScrollView } from 'react-native';
 
-export default function HabitsLayout(){
+export default function HabitsPage() {
     return (
-        <View>
-            <Text>Habits</Text>
-        </View>
+        <ScrollView style={globalStyles.container}>
+            <HabitList />
+        </ScrollView>
     );
 }
