@@ -7,6 +7,8 @@
       "@/*": [ "./*" ],
       // Add these for better autocomplete
       "@components/*": ["./components/*"],
+      "@context/*": ["./context/*"],
+      "@styles/*": ["./styles/*"],
       "@services/*": ["./services/*"],
       "@types/*": ["./types/*"],
       "@utils/*": ["./utils/*"],

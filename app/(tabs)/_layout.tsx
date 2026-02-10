@@ -16,16 +16,8 @@ export default function TabLayout() {
                     tabBarIcon: ({ color, focused }) => {
                         return <AntDesign name="home" size={24} color={focused?color:"black"} />
                     }
-
                 }
             } />
-
-            <Tabs.Screen name='profile' options={{
-                title: "Profile", tabBarIcon: ({ color, focused }) => {
-                    return <FontAwesome name="user-circle" size={24} color={focused?color:"black"} />
-                }
-
-            }} />
 
             <Tabs.Screen name='habits' options={{
                 title: "Habits", tabBarIcon: ({ color, focused }) => {
@@ -36,6 +28,13 @@ export default function TabLayout() {
             <Tabs.Screen name='tasks' options={{
                 title: "Tasks", tabBarIcon: ({ color, focused }) => {
                     return <MaterialIcons name="add-task" size={24} color={focused?color: "black"} />
+                }
+
+            }} />
+
+            <Tabs.Screen name='profile' options={{
+                title: "Profile", tabBarIcon: ({ color, focused }) => {
+                    return <FontAwesome name="user-circle" size={24} color={focused?color:"black"} />
                 }
 
             }} />

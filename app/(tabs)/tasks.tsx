@@ -1,9 +1,13 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import AddButton from '@/components/AddButton';
+import TaskList from '@/components/TaskList'
 
 export default function TasksLayout(){
     return (
-        <View>
-            <Text>Tasks</Text>
+        // This View now takes up the full screen, providing a container for its children.
+        <View style={{ flex: 1 }}>
+            <TaskList/>
+            <AddButton />
         </View>
     );
 }
