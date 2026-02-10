@@ -5,7 +5,8 @@ export const theme = {
     primary_bg: '#ecebeb',
     button_bg: '#f49e24',
     primary_fg: '#131313',
-    secondary_fg: '#5232ca'
+    secondary_fg: '#5232ca',
+    error: '#f21a2f'
   }
 }
 
