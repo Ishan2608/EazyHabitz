@@ -9,7 +9,7 @@ export interface User {
 }
 
 export interface Goal {
-  id?: string;
+  id: string;
   userId: string;
   name: string;
   description: string;
@@ -21,7 +21,7 @@ export interface Goal {
 }
 
 export interface Habit {
-  id?: string;
+  id: string;
   userId: string;
   goalId: string | null;
   name: string;
@@ -36,7 +36,7 @@ export interface Habit {
 }
 
 export interface HabitLog {
-  id?: string;
+  id: string;
   habitId: string;
   logDate: string; // YYYY-MM-DD format
   isCompleted: boolean;
@@ -45,7 +45,7 @@ export interface HabitLog {
 }
 
 export interface TaskList {
-  id?: string;
+  id: string;
   userId: string;
   name: string;
   description: string;
@@ -54,12 +54,12 @@ export interface TaskList {
 }
 
 export interface Task {
-  id?: string;
+  id: string;
   userId: string;
   taskListId: string | null;
   goalId: string | null;
   title: string;
-  description: string;
+  description: string | null;
   dueDate: Timestamp;
   status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   priority: "LOW" | "MEDIUM" | "HIGH";
@@ -69,7 +69,7 @@ export interface Task {
 }
 
 export interface SWOTAnalysis {
-  id?: string;
+  id: string;
   userId: string;
   goalId: string | null;
   strengths: string;

@@ -1,16 +1,19 @@
 import { taskCardStyle as styles } from "@/styles/index";
 import { Task } from "@/types";
-import { Text, View } from "react-native";
+import { Text, View, TouchableOpacity } from "react-native";
 
 interface TaskCardProps {
     data: Task;
+    onDelete: (id: string) => void;
 }
 
-export default function TaskCard({ data }: TaskCardProps){
+export default function TaskCard({ data, onDelete }: TaskCardProps){
     return (
         <View style={styles.cardContainer}>
             {/* Checkbox Circle */}
-            <View style={styles.checkbox} />
+            <TouchableOpacity onPress={() => onDelete(data.id)}>
+                <View style={styles.checkbox} />
+            </TouchableOpacity>
 
             <View style={styles.textContainer}>
                 <Text style={styles.title}>{data.title}</Text>
@@ -33,4 +36,3 @@ export default function TaskCard({ data }: TaskCardProps){
         </View>
     );
 }
-
