@@ -6,7 +6,7 @@ export default function Home(){
     return (
         <View>
             <Text>
-                {`Welcome ${user?user.displayName:''}`}
+                Welcome to Home
             </Text>
         </View>
     );
