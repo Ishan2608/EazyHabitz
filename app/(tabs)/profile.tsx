@@ -1,8 +1,8 @@
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity, } from "react-native";
 import { useAuth } from "@/context/authContext";
 
 export default function ProfileLayout(){
-    const {user} = useAuth();
+    const {user, logout} = useAuth();
     return(
         <View>
             <Text>
@@ -11,6 +11,11 @@ export default function ProfileLayout(){
             <Text>
                 {user? user.email: ""}
             </Text>
+            <TouchableOpacity
+                onPress={logout}
+            >   
+                <Text> Sign out </Text>
+            </TouchableOpacity>
         </View>
     );
 }
