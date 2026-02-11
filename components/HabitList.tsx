@@ -1,9 +1,9 @@
-import React from 'react';
-import { ScrollView, View } from 'react-native';
-import HabitCard from './HabitCard';
+import globalStyles from '@/styles/globals';
 import { Habit } from '@/types';
 import { Timestamp } from 'firebase/firestore';
-import globalStyles from '@/styles/globals';
+import React from 'react';
+import { ScrollView } from 'react-native';
+import HabitCard from './HabitCard';
 
 const mockHabits: Habit[] = [
     {
@@ -52,7 +52,9 @@ const mockHabits: Habit[] = [
 
 export default function HabitList() {
     return (
-        <ScrollView contentContainerStyle={globalStyles.listContainer}>
+        <ScrollView 
+            showsVerticalScrollIndicator={false}
+        contentContainerStyle={globalStyles.listContainer}>
             {mockHabits.map(habit => (
                 <HabitCard key={habit.id} data={habit} />
             ))}

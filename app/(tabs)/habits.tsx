@@ -1,11 +1,13 @@
 import HabitList from '@/components/HabitList';
 import globalStyles from '@/styles/globals';
-import { ScrollView } from 'react-native';
+import { View } from 'react-native';
 
 export default function HabitsPage() {
     return (
-        <ScrollView style={globalStyles.container}>
+        <View 
+            style={globalStyles.container}
+        >
             <HabitList />
-        </ScrollView>
+        </View>
     );
 }
