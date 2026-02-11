@@ -3,12 +3,14 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, ScrollView,
 import { useAuth } from "@/context/authContext";
 import { Feather } from '@expo/vector-icons';
 import { theme } from "@/styles/globals";
+import Header from '@/components/Header';
 
 export default function ProfileLayout() {
   const { user, logout } = useAuth();
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9F9F9' }}>
+      <Header title="Profile" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -18,10 +20,6 @@ export default function ProfileLayout() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Profile</Text>
-          </View>
-
           <View style={styles.profileSection}>
             <TouchableOpacity style={styles.avatarContainer}>
               {user?.photoUrl ? (
@@ -80,15 +78,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingBottom: 40,
-  },
-  header: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2C3E50',
+    paddingTop: 20, // Add padding to the top to space content from header
   },
   profileSection: {
     alignItems: 'center',

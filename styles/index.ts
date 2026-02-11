@@ -1,6 +1,50 @@
 import { StyleSheet } from "react-native";
 import { theme } from "./globals";
 
+export const headerStyle = StyleSheet.create({
+    headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: '#F9F9F9', // A light background color
+    },
+    leftContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    appIcon: {
+        width: 30,
+        height: 30,
+        marginRight: 12,
+        borderRadius: 15, // Added for circular shape
+    },
+    headerTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#2C3E50',
+    },
+    profileImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+    },
+    profileInitialContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: theme.colors.button_bg, // Use a theme color for the background
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    profileInitialText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+});
+
 // Existing style for Task Cards
 export const taskCardStyle = StyleSheet.create(
     {
