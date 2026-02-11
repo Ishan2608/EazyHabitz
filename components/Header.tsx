@@ -1,9 +1,11 @@
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { useAuth } from '@/context/authContext';
 import { headerStyle as styles } from '@/styles/index';
+import { useRouter } from 'expo-router';
 
 export default function Header({ title }: { title: string }) {
     const { user } = useAuth();
+    const router = useRouter();
 
     const getInitials = (name: string) => {
         if (!name) return '';
@@ -19,19 +21,20 @@ export default function Header({ title }: { title: string }) {
                 />
                 <Text style={styles.headerTitle}>{title}</Text>
             </View>
-
-            {user?.photoUrl ? (
-                <Image
-                    source={{ uri: user.photoUrl }}
-                    style={styles.profileImage}
-                />
-            ) : (
-                <View style={styles.profileInitialContainer}>
-                    <Text style={styles.profileInitialText}>
-                        {getInitials(user?.displayName || '')}
-                    </Text>
-                </View>
-            )}
+            <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
+                {user?.photoUrl ? (
+                    <Image
+                        source={{ uri: user.photoUrl }}
+                        style={styles.profileImage}
+                    />
+                ) : (
+                    <View style={styles.profileInitialContainer}>
+                        <Text style={styles.profileInitialText}>
+                            {getInitials(user?.displayName || '')}
+                        </Text>
+                    </View>
+                )}
+            </TouchableOpacity>
         </View>
     );
 }
