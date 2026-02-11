@@ -13,7 +13,7 @@ export const theme = {
 const globalStyles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 15,
     backgroundColor: "#ffffff",
   },
   listContainer:{
@@ -21,7 +21,7 @@ const globalStyles = StyleSheet.create({
     padding: 15,
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   screenContainer: {
     flex: 1,
